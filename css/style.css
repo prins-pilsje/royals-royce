@@ -34,5 +34,21 @@ p{
 	font-weight: bold;
 	text-transform: uppercase;
 	line-height: 2;
+}
 
+#drop_down2 {
+	display: none;
+	border: 1px solid #efefef;
+	background: #dbdbdb;
+	padding: 15px 15px 5px;
+}
+
+#drop_down_btn2 {
+	background: #efefef;
+	padding: 0 15px;
+    color: #666;
+	font-size: 1.2em;
+	font-weight: bold;
+	text-transform: uppercase;
+	line-height: 2;
 }
