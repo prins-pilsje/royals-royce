@@ -1,21 +1,16 @@
 (function($){
 	$(function(){
-		var btnDropDown = $('#drop_down_btn'),
-			divDropDown = $('#drop_down');
+		var makeSlidable = function(index){
+			var btnDropDown = $('#drop_down_btn' + index),
+				divDropDown = $('#drop_down' + index);
 
-		btnDropDown.on('click', function(){
-			divDropDown.slideToggle();
-		});
+			btnDropDown.on('click', function(){
+				divDropDown.slideToggle();
+			});
+		}
+
+		makeSlidable("");
+		makeSlidable("2");
+
 	})
-})(jQuery);
-
-(function($){
-  $(function(){
-    var btnDropDown = $('#drop_down_btn2'),
-      divDropDown = $('#drop_down2');
-
-    btnDropDown.on('click', function(){
-      divDropDown.slideToggle();
-    });
-  })
 })(jQuery);
