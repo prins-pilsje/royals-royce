@@ -10,7 +10,9 @@
             // Über defaults.Eigenschaft sind die Optionen erreichbar
             defaults = jQuery.extend({
                 anim: 1200
-            }, options);
+            }, options),
+            preventDefaultEvents = true,
+            startX, startY, isCss;
 
 
 
@@ -26,18 +28,65 @@
                 'left': 0
             });
 
+            // Testen, ob CSS-Eigenschaft existiert
+            isCss = checkCssProperty('transition');
+
             // Breite für Teil-Inhalte festlegen
             slides.each(function(index, element){
                 $(element).width(defaults.width);
             });
 
-            // DOMMouseScroll wegen Firefox ab Version 3
-            $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
-                hMouseWheelHandler(evt);
-            });
+            // Scroll- und Touchevents registrieren
+            registerEvents();
 
             return elem;
         };
+/* *** [Events] *** */
+        function onTouchStart(evt){
+            if (evt.touches.length === 1) {
+                startX = evt.touches[0].pageX;
+                startY = evt.touches[0].pageY;
+                isMoving = true;
+
+                //this.addEventListener('touchstart', onTouchStart, false);
+                $win.on('touchmove.qpHorPara', function(evt){
+                    onTouchMove(evt.originalEvent);
+                });
+            }
+        }
+
+        function onTouchMove(e) {
+            if(defaults.preventDefaultEvents) {
+                e.preventDefault();
+            }
+
+            if(isMoving) {
+                var x = e.touches[0].pageX,
+                    y = e.touches[0].pageY,
+                    dx = startX - x,
+                    dy = startY - y,
+                    delta = 0;
+
+                $win.off("touchstart.qpHorPara touchmove.qpHorPara");
+
+                if(dx > 0) {
+                    delta = 1;
+                } else {
+                    delta = -1;
+                }
+
+                // if(dy > 0) {
+                //     // defaults.wipeDown();
+                //     output.html(output.html() + "<br />" + 'wipeDown');
+                // } else {
+                //     // defaults.wipeUp();
+                //     output.html(output.html() + "<br />" + 'wipeUp');
+                // }
+                if(delta !== 0){
+                    animSlide(delta);
+                }
+            }
+        }
 
         function hMouseWheelHandler(evt) {
             // mousewheel-Event entfernen, um Überlagerung zu vermeiden
@@ -46,28 +95,84 @@
             evt.preventDefault();
 
             var origEvt = evt.originalEvent,                                                    // Orginalevent
-                delta = -Math.max(-1, Math.min(1, (origEvt.wheelDelta || -origEvt.detail))),    // -1 oder 1
-                addLeft = delta * defaults.width,                                               // Left-Differenz
+                delta = -Math.max(-1, Math.min(1, (origEvt.wheelDelta || -origEvt.detail)));    // -1 oder 1
+
+            animSlide(delta);
+        }
+
+        function registerEvents(){
+            // DOMMouseScroll wegen Firefox ab Version 3
+            $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
+                hMouseWheelHandler(evt);
+            });
+            if ('ontouchstart' in document.documentElement) {
+                //this.addEventListener('touchstart', onTouchStart, false);
+                $win.on('touchstart.qpHorPara', function(evt){
+                    onTouchStart(evt.originalEvent);
+                });
+            }
+        }
+
+/* *** [Animation] *** */
+        function animSlide(delta) {
+
+            var addLeft = delta * defaults.width,                                               // Left-Differenz
                 left = parseInt(list.css('left')),                                              // bisheriger left-Wert
                 newLeft = left - addLeft;                                                       // neuer left-Wert
 
             // falls der neue left-Wert im gültigen Bereich liegt
             if((newLeft <= 0) && (newLeft >= -defaults.listWidth+defaults.width)){
-                list.animate({
-                    left: newLeft + "px",
-                    easing: 'easeInOutQuart'
-                }, defaults.anim, function() {
-                    // DOMMouseScroll wegen Firefox ab Version 3
-                    $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
-                        hMouseWheelHandler(evt);
+
+                if(isCss){
+                    list.css({
+                        'left': newLeft + "px",
+                        'transition': 'left ' + (defaults.anim/1000)+ 's ease-in-out'
                     });
-                });
+
+                    window.setTimeout(function(){
+                        registerEvents();
+                    }, defaults.anim);
+                }else{
+                    list.animate({
+                        left: newLeft + "px",
+                        easing: 'easeInOutQuart'
+                    }, defaults.anim, function() {
+                        registerEvents();
+                    });
+                }
+
             }else{
-                // DOMMouseScroll wegen Firefox ab Version 3
-                $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
-                    hMouseWheelHandler(evt);
-                });
+                registerEvents();
             }
+        }
+
+/* *** [HILFSFUNKTIONEN] *** */
+        // Existenz einer CSS-Eigenschaft testen
+        function checkCssProperty(prop) {
+            var elem = document.createElement('div'),
+                prefixes = ['Moz', 'Webkit', 'O', 'ms'],
+                _prop, i, prefixedProp;
+
+            // testen auf Eigenschaft ohne Präfix
+            if (prop in elem.style) {
+                return true;
+            }
+
+            _prop = prop.charAt(0).toUpperCase() + prop.substr(1);
+
+            if (prop in elem.style) {
+                return true;
+            }
+
+            for (i=0; i<prefixes.length; ++i) {
+                var prefixedProp = prefixes[i] + _prop;
+
+                if (prefixedProp in elem.style) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Public:
