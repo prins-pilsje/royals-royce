@@ -131,7 +131,7 @@
 
                     window.setTimeout(function(){
                         registerEvents();
-                    }, defaults.anim);
+                    }, defaults.anim+50);
                 }else{
                     list.animate({
                         left: newLeft + "px",
