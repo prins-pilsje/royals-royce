@@ -1,0 +1,72 @@
+/* *** [START - Allgemeine Einstellungen] **** */
+*{
+	margin: 0;
+	padding: 0;
+}
+
+body, html{
+	height: 100%;
+}
+
+html.js, html.js body{
+	overflow: hidden;
+}
+
+html.js body{
+	background: #f00;
+}
+body{
+	background: #0f0;
+}
+/* *** [ENDE  - Allgemeine Einstellungen] **** */
+
+/* *** [START - Struktur-Elemente] *********** */
+#contentWrapper{
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+html.js #contentWrapper{
+	position: relative;
+	overflow: hidden;
+}
+
+html.js #contentList{
+	position: absolute;
+}
+#contentList{
+	height: 100%;
+	width: auto;
+	list-style: none;
+	white-space: nowrap;
+}
+html.js #contentList li{
+	float: left;
+}
+#contentList li{
+	width: 100%;
+	height: 100%;
+}
+#contentList li.slide1{
+	background: #b7b7b7;
+}
+#contentList li.slide2{
+	background: #aaa;
+}
+#contentList li.slide3{
+	background: #333;
+}
+/* *** [ENDE  - Struktur-Elemente] ********** */
+
+/* *** [START - Content-Elemente] *********** */
+h1{
+	font-size: 60px;
+	background: none repeat scroll 0 0 #EEEEEE;
+	color: #707070;
+	text-shadow: 3px 3px 0 #EEEEEE, 5px 5px 0 #707070;
+	letter-spacing: 1px;
+	word-spacing: 3px;
+	padding: 0 15px 10px;
+	margin: 20px 40px;
+}
+/* *** [ENDE  - Content-Elemente] *********** */
