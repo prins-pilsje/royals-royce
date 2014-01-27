@@ -131,13 +131,16 @@
 
                     window.setTimeout(function(){
                         registerEvents();
-                    }, defaults.anim);
+                    }, defaults.anim+50);
                 }else{
                     list.animate({
                         left: newLeft + "px",
-                        easing: 'easeInOutQuart'
-                    }, defaults.anim, function() {
-                        registerEvents();
+                    }, {
+                        duration: defaults.anim,
+                        easing: 'easeInOutQuart',
+                        complete: function() {
+                            registerEvents();
+                        }
                     });
                 }
 
