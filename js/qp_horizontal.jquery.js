@@ -135,9 +135,12 @@
                 }else{
                     list.animate({
                         left: newLeft + "px",
-                        easing: 'easeInOutQuart'
-                    }, defaults.anim, function() {
-                        registerEvents();
+                    }, {
+                        duration: defaults.anim,
+                        easing: 'easeInOutQuart',
+                        complete: function() {
+                            registerEvents();
+                        }
                     });
                 }
 
