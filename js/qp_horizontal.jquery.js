@@ -10,7 +10,9 @@
             // Über defaults.Eigenschaft sind die Optionen erreichbar
             defaults = jQuery.extend({
                 anim: 1200
-            }, options);
+            }, options),
+            preventDefaultEvents = true,
+            startX, startY;
 
 
 
@@ -36,8 +38,58 @@
                 hMouseWheelHandler(evt);
             });
 
+            if ('ontouchstart' in document.documentElement) {
+                //this.addEventListener('touchstart', onTouchStart, false);
+                $win.on('touchstart.qpHorPara', function(evt){
+                    $('.output').html(evt.originalEvent);
+                    onTouchStart(evt.originalEvent);
+                });
+            }
+
             return elem;
         };
+
+        function onTouchStart(e){
+            if (e.touches.length === 1) {
+                startX = e.touches[0].pageX;
+                startY = e.touches[0].pageY;
+                isMoving = true;
+                this.addEventListener('touchmove', onTouchMove, false);
+            }
+        }
+
+        function onTouchMove(e) {
+            if(defaults.preventDefaultEvents) {
+                e.preventDefault();
+            }
+
+            if(isMoving) {
+                var x = e.touches[0].pageX,
+                    y = e.touches[0].pageY,
+                    dx = startX - x,
+                    dy = startY - y,
+                    delta = 0;
+
+                $win.off("touchstart.qpHorPara");
+
+                if(dx > 0) {
+                    delta = 1;
+                } else {
+                    delta = -1;
+                }
+
+                // if(dy > 0) {
+                //     // defaults.wipeDown();
+                //     output.html(output.html() + "<br />" + 'wipeDown');
+                // } else {
+                //     // defaults.wipeUp();
+                //     output.html(output.html() + "<br />" + 'wipeUp');
+                // }
+                if(delta !== 0){
+                    animSlide(delta);
+                }
+            }
+        }
 
         function hMouseWheelHandler(evt) {
             // mousewheel-Event entfernen, um Überlagerung zu vermeiden
@@ -51,6 +103,33 @@
                 left = parseInt(list.css('left')),                                              // bisheriger left-Wert
                 newLeft = left - addLeft;                                                       // neuer left-Wert
 
+            // // falls der neue left-Wert im gültigen Bereich liegt
+            // if((newLeft <= 0) && (newLeft >= -defaults.listWidth+defaults.width)){
+            //     list.animate({
+            //         left: newLeft + "px",
+            //         easing: 'easeInOutQuart'
+            //     }, defaults.anim, function() {
+            //         // DOMMouseScroll wegen Firefox ab Version 3
+            //         $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
+            //             hMouseWheelHandler(evt);
+            //         });
+            //     });
+            // }else{
+            //     // DOMMouseScroll wegen Firefox ab Version 3
+            //     $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
+            //         hMouseWheelHandler(evt);
+            //     });
+            // }
+
+            animSlide(delta);
+        }
+
+        function animSlide(delta) {
+
+            var addLeft = delta * defaults.width,                                               // Left-Differenz
+                left = parseInt(list.css('left')),                                              // bisheriger left-Wert
+                newLeft = left - addLeft;                                                       // neuer left-Wert
+
             // falls der neue left-Wert im gültigen Bereich liegt
             if((newLeft <= 0) && (newLeft >= -defaults.listWidth+defaults.width)){
                 list.animate({
@@ -61,12 +140,27 @@
                     $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
                         hMouseWheelHandler(evt);
                     });
+                        if ('ontouchstart' in document.documentElement) {
+                        //this.addEventListener('touchstart', onTouchStart, false);
+                        $win.on('touchstart.qpHorPara', function(evt){
+                            $('.output').html(evt.originalEvent);
+                            onTouchStart(evt.originalEvent);
+                        });
+                    }
                 });
             }else{
                 // DOMMouseScroll wegen Firefox ab Version 3
                 $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
                     hMouseWheelHandler(evt);
                 });
+
+                if ('ontouchstart' in document.documentElement) {
+                    //this.addEventListener('touchstart', onTouchStart, false);
+                    $win.on('touchstart.qpHorPara', function(evt){
+                        $('.output').html(evt.originalEvent);
+                        onTouchStart(evt.originalEvent);
+                    });
+                }
             }
         }
 
