@@ -9,6 +9,7 @@
             slides = list.children('li'),
             // Über defaults.Eigenschaft sind die Optionen erreichbar
             defaults = jQuery.extend({
+                index: 0,
                 anim: 1200
             }, options),
             preventDefaultEvents = true,
@@ -25,7 +26,7 @@
             // Länge für UL festlegen
             list.width(defaults.listWidth);
             list.css({
-                'left': 0
+                'left': (defaults.index*defaults.width) + "px"
             });
 
             // Testen, ob CSS-Eigenschaft existiert
@@ -34,14 +35,31 @@
             // Breite für Teil-Inhalte festlegen
             slides.each(function(index, element){
                 $(element).width(defaults.width);
+                $(element).height(defaults.height);
             });
 
             // Scroll- und Touchevents registrieren
             registerEvents();
 
+            $(window).on('resize', function(evt){
+                onResize(evt);
+            });
+
             return elem;
         };
 /* *** [Events] *** */
+        function onResize(evt){
+            //console.log(evt);
+
+            // ToDo:
+            // 1. mousewheel- und touch-Events entfernen - .off("touchstart.qpHorPara touchmove.qpHorPara"), .off("mousewheel.qpHorPara DOMMouseScroll.qpHorPara")
+            // 2. defaults.width und defaults.height neu berechnen
+            // 3. Gesamtlänge neu berechnen und UL zuweisen (siehe Zeilen 24-30)
+            // 4. Länge der slides neu berechnen slides.each(...) - siehe Zeile 36
+            // 5. animSlide mit aktuellem Index aufrufen animSlide(defaults.index)
+        }
+
+
         function onTouchStart(evt){
             if (evt.touches.length === 1) {
                 startX = evt.touches[0].pageX;
@@ -83,7 +101,7 @@
                 //     output.html(output.html() + "<br />" + 'wipeUp');
                 // }
                 if(delta !== 0){
-                    animSlide(delta);
+                    calcIndex(delta);
                 }
             }
         }
@@ -97,7 +115,7 @@
             var origEvt = evt.originalEvent,                                                    // Orginalevent
                 delta = -Math.max(-1, Math.min(1, (origEvt.wheelDelta || -origEvt.detail)));    // -1 oder 1
 
-            animSlide(delta);
+            calcIndex(delta);
         }
 
         function registerEvents(){
@@ -114,18 +132,26 @@
         }
 
 /* *** [Animation] *** */
-        function animSlide(delta) {
+        function calcIndex(delta) {
+            var index = defaults.index + delta;         // neuer Index
 
-            var addLeft = delta * defaults.width,                                               // Left-Differenz
-                left = parseInt(list.css('left')),                                              // bisheriger left-Wert
-                newLeft = left - addLeft;                                                       // neuer left-Wert
+            if(index >= 0 && index < slides.length){
+                defaults.index = index;
+                animSlide(defaults.index);
+            }else{
+                registerEvents();
+            }
+        }
 
-            // falls der neue left-Wert im gültigen Bereich liegt
-            if((newLeft <= 0) && (newLeft >= -defaults.listWidth+defaults.width)){
+        function animSlide(index) {
+            var nLeft;
+
+            if(index >= 0 && index < slides.length){
+                nLeft = -index * defaults.width;
 
                 if(isCss){
                     list.css({
-                        'left': newLeft + "px",
+                        'left': nLeft + "px",
                         'transition': 'left ' + (defaults.anim/1000)+ 's ease-in-out'
                     });
 
@@ -134,7 +160,7 @@
                     }, defaults.anim+50);
                 }else{
                     list.animate({
-                        left: newLeft + "px",
+                        left: nLeft + "px",
                     }, {
                         duration: defaults.anim,
                         easing: 'easeInOutQuart',
@@ -144,8 +170,6 @@
                     });
                 }
 
-            }else{
-                registerEvents();
             }
         }
 
