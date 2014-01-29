@@ -52,10 +52,11 @@
             //console.log(evt);
 
             // ToDo:
-            // 1. defaults.width und defaults.height neu berechnen
-            // 2. Gesamtlänge neu berechnen und UL zuweisen (siehe Zeilen 24-30)
-            // 3. Länge der slides neu berechnen slides.each(...) - siehe Zeile 36
-            // 4. animSlide mit aktuellem Index aufrufen animSlide(defaults.index)
+            // 1. mousewheel- und touch-Events entfernen - .off("touchstart.qpHorPara touchmove.qpHorPara"), .off("mousewheel.qpHorPara DOMMouseScroll.qpHorPara")
+            // 2. defaults.width und defaults.height neu berechnen
+            // 3. Gesamtlänge neu berechnen und UL zuweisen (siehe Zeilen 24-30)
+            // 4. Länge der slides neu berechnen slides.each(...) - siehe Zeile 36
+            // 5. animSlide mit aktuellem Index aufrufen animSlide(defaults.index)
         }
 
 
@@ -134,7 +135,6 @@
         function calcIndex(delta) {
             var index = defaults.index + delta;         // neuer Index
 
-
             if(index >= 0 && index < slides.length){
                 defaults.index = index;
                 animSlide(defaults.index);
@@ -170,8 +170,6 @@
                     });
                 }
 
-            }else{
-                //registerEvents();
             }
         }
 
