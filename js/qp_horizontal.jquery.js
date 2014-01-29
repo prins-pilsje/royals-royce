@@ -41,9 +41,24 @@
             // Scroll- und Touchevents registrieren
             registerEvents();
 
+            $(window).on('resize', function(evt){
+                onResize(evt);
+            });
+
             return elem;
         };
 /* *** [Events] *** */
+        function onResize(evt){
+            //console.log(evt);
+
+            // ToDo:
+            // 1. defaults.width und defaults.height neu berechnen
+            // 2. Gesamtlänge neu berechnen und UL zuweisen (siehe Zeilen 24-30)
+            // 3. Länge der slides neu berechnen slides.each(...) - siehe Zeile 36
+            // 4. animSlide mit aktuellem Index aufrufen animSlide(defaults.index)
+        }
+
+
         function onTouchStart(evt){
             if (evt.touches.length === 1) {
                 startX = evt.touches[0].pageX;
@@ -85,7 +100,7 @@
                 //     output.html(output.html() + "<br />" + 'wipeUp');
                 // }
                 if(delta !== 0){
-                    animSlide(delta);
+                    calcIndex(delta);
                 }
             }
         }
@@ -99,7 +114,7 @@
             var origEvt = evt.originalEvent,                                                    // Orginalevent
                 delta = -Math.max(-1, Math.min(1, (origEvt.wheelDelta || -origEvt.detail)));    // -1 oder 1
 
-            animSlide(delta);
+            calcIndex(delta);
         }
 
         function registerEvents(){
@@ -116,14 +131,23 @@
         }
 
 /* *** [Animation] *** */
-        function animSlide(delta) {
-            var index = defaults.index + delta,         // neuer Index
-                nLeft;
+        function calcIndex(delta) {
+            var index = defaults.index + delta;         // neuer Index
 
 
             if(index >= 0 && index < slides.length){
-                nLeft = -index * defaults.width;
                 defaults.index = index;
+                animSlide(defaults.index);
+            }else{
+                registerEvents();
+            }
+        }
+
+        function animSlide(index) {
+            var nLeft;
+
+            if(index >= 0 && index < slides.length){
+                nLeft = -index * defaults.width;
 
                 if(isCss){
                     list.css({
@@ -147,7 +171,7 @@
                 }
 
             }else{
-                registerEvents();
+                //registerEvents();
             }
         }
 
