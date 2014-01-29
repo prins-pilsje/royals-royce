@@ -9,6 +9,7 @@
             slides = list.children('li'),
             // Über defaults.Eigenschaft sind die Optionen erreichbar
             defaults = jQuery.extend({
+                index: 0,
                 anim: 1200
             }, options),
             preventDefaultEvents = true,
@@ -25,7 +26,7 @@
             // Länge für UL festlegen
             list.width(defaults.listWidth);
             list.css({
-                'left': 0
+                'left': (defaults.index*defaults.width) + "px"
             });
 
             // Testen, ob CSS-Eigenschaft existiert
@@ -34,6 +35,7 @@
             // Breite für Teil-Inhalte festlegen
             slides.each(function(index, element){
                 $(element).width(defaults.width);
+                $(element).height(defaults.height);
             });
 
             // Scroll- und Touchevents registrieren
@@ -115,17 +117,17 @@
 
 /* *** [Animation] *** */
         function animSlide(delta) {
+            var index = defaults.index + delta,         // neuer Index
+                nLeft;
 
-            var addLeft = delta * defaults.width,                                               // Left-Differenz
-                left = parseInt(list.css('left')),                                              // bisheriger left-Wert
-                newLeft = left - addLeft;                                                       // neuer left-Wert
 
-            // falls der neue left-Wert im gültigen Bereich liegt
-            if((newLeft <= 0) && (newLeft >= -defaults.listWidth+defaults.width)){
+            if(index >= 0 && index < slides.length){
+                nLeft = -index * defaults.width;
+                defaults.index = index;
 
                 if(isCss){
                     list.css({
-                        'left': newLeft + "px",
+                        'left': nLeft + "px",
                         'transition': 'left ' + (defaults.anim/1000)+ 's ease-in-out'
                     });
 
@@ -134,7 +136,7 @@
                     }, defaults.anim+50);
                 }else{
                     list.animate({
-                        left: newLeft + "px",
+                        left: nLeft + "px",
                     }, {
                         duration: defaults.anim,
                         easing: 'easeInOutQuart',
