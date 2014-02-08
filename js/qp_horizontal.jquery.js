@@ -19,6 +19,20 @@
 
         // Private:
         function init(){
+            // Dimensionen berechnen
+            calcDimensions();
+
+            // Scroll- und Touchevents registrieren
+            registerEvents();
+
+            $(window).on('resize', function(evt){
+                _onResize(evt);
+            });
+
+            return elem;
+        };
+
+        function calcDimensions(){
             defaults.width = $(window).width();
             defaults.height = $(window).height();
             defaults.listWidth = slides.length * defaults.width;
@@ -37,26 +51,23 @@
                 $(element).width(defaults.width);
                 $(element).height(defaults.height);
             });
+        }
 
-            // Scroll- und Touchevents registrieren
-            registerEvents();
-
-            $(window).on('resize', function(evt){
-                onResize(evt);
-            });
-
-            return elem;
-        };
 /* *** [Events] *** */
-        function onResize(evt){
-            //console.log(evt);
+        // Behandelt die Neuberechnung und Anzeige des richtigen Slide bei einem Resize des Fensters
+        function _onResize(evt){
+            // mousewheel-Event entfernen, um Überlagerung zu vermeiden
+            $win.off("mousewheel.qpHorPara DOMMouseScroll.qpHorPara");
+            // touch-Events entfernen
+            if ('ontouchstart' in document.documentElement) {
+                $win.off("touchstart.qpHorPara touchmove.qpHorPara");
+            }
 
-            // ToDo:
-            // 1. mousewheel- und touch-Events entfernen - .off("touchstart.qpHorPara touchmove.qpHorPara"), .off("mousewheel.qpHorPara DOMMouseScroll.qpHorPara")
-            // 2. defaults.width und defaults.height neu berechnen
-            // 3. Gesamtlänge neu berechnen und UL zuweisen (siehe Zeilen 24-30)
-            // 4. Länge der slides neu berechnen slides.each(...) - siehe Zeile 36
-            // 5. animSlide mit aktuellem Index aufrufen animSlide(defaults.index)
+            // Dimensionen neu berechnen
+            calcDimensions();
+
+            // slide-Funktion aufrufen
+            animSlide(defaults.index, 0);
         }
 
 
@@ -143,26 +154,27 @@
             }
         }
 
-        function animSlide(index) {
+        function animSlide(index, anim) {
             var nLeft;
 
             if(index >= 0 && index < slides.length){
+                anim = (anim === undefined) ? defaults.anim : anim;
                 nLeft = -index * defaults.width;
 
                 if(isCss){
                     list.css({
                         'left': nLeft + "px",
-                        'transition': 'left ' + (defaults.anim/1000)+ 's ease-in-out'
+                        'transition': 'left ' + (anim/1000) + 's ease-in-out'
                     });
 
                     window.setTimeout(function(){
                         registerEvents();
-                    }, defaults.anim+50);
+                    }, anim+50);
                 }else{
                     list.animate({
                         left: nLeft + "px",
                     }, {
-                        duration: defaults.anim,
+                        duration: anim,
                         easing: 'easeInOutQuart',
                         complete: function() {
                             registerEvents();
