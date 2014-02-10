@@ -9,13 +9,30 @@
             slides = list.children('li'),
             // Über defaults.Eigenschaft sind die Optionen erreichbar
             defaults = jQuery.extend({
+                index: 0,
                 anim: 1200
-            }, options);
+            }, options),
+            preventDefaultEvents = true,
+            startX, startY, isCss;
 
 
 
         // Private:
         function init(){
+            // Dimensionen berechnen
+            calcDimensions();
+
+            // Scroll- und Touchevents registrieren
+            registerEvents();
+
+            $(window).on('resize', function(evt){
+                _onResize(evt);
+            });
+
+            return elem;
+        };
+
+        function calcDimensions(){
             defaults.width = $(window).width();
             defaults.height = $(window).height();
             defaults.listWidth = slides.length * defaults.width;
@@ -23,21 +40,82 @@
             // Länge für UL festlegen
             list.width(defaults.listWidth);
             list.css({
-                'left': 0
+                'left': (defaults.index*defaults.width) + "px"
             });
+
+            // Testen, ob CSS-Eigenschaft existiert
+            isCss = checkCssProperty('transition');
 
             // Breite für Teil-Inhalte festlegen
             slides.each(function(index, element){
                 $(element).width(defaults.width);
+                $(element).height(defaults.height);
             });
+        }
 
-            // DOMMouseScroll wegen Firefox ab Version 3
-            $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
-                hMouseWheelHandler(evt);
-            });
+/* *** [Events] *** */
+        // Behandelt die Neuberechnung und Anzeige des richtigen Slide bei einem Resize des Fensters
+        function _onResize(evt){
+            // mousewheel-Event entfernen, um Überlagerung zu vermeiden
+            $win.off("mousewheel.qpHorPara DOMMouseScroll.qpHorPara");
+            // touch-Events entfernen
+            if ('ontouchstart' in document.documentElement) {
+                $win.off("touchstart.qpHorPara touchmove.qpHorPara");
+            }
 
-            return elem;
-        };
+            // Dimensionen neu berechnen
+            calcDimensions();
+
+            // slide-Funktion aufrufen
+            animSlide(defaults.index, 0);
+        }
+
+
+        function onTouchStart(evt){
+            if (evt.touches.length === 1) {
+                startX = evt.touches[0].pageX;
+                startY = evt.touches[0].pageY;
+                isMoving = true;
+
+                //this.addEventListener('touchstart', onTouchStart, false);
+                $win.on('touchmove.qpHorPara', function(evt){
+                    onTouchMove(evt.originalEvent);
+                });
+            }
+        }
+
+        function onTouchMove(e) {
+            if(defaults.preventDefaultEvents) {
+                e.preventDefault();
+            }
+
+            if(isMoving) {
+                var x = e.touches[0].pageX,
+                    y = e.touches[0].pageY,
+                    dx = startX - x,
+                    dy = startY - y,
+                    delta = 0;
+
+                $win.off("touchstart.qpHorPara touchmove.qpHorPara");
+
+                if(dx > 0) {
+                    delta = 1;
+                } else {
+                    delta = -1;
+                }
+
+                // if(dy > 0) {
+                //     // defaults.wipeDown();
+                //     output.html(output.html() + "<br />" + 'wipeDown');
+                // } else {
+                //     // defaults.wipeUp();
+                //     output.html(output.html() + "<br />" + 'wipeUp');
+                // }
+                if(delta !== 0){
+                    calcIndex(delta);
+                }
+            }
+        }
 
         function hMouseWheelHandler(evt) {
             // mousewheel-Event entfernen, um Überlagerung zu vermeiden
@@ -46,28 +124,94 @@
             evt.preventDefault();
 
             var origEvt = evt.originalEvent,                                                    // Orginalevent
-                delta = -Math.max(-1, Math.min(1, (origEvt.wheelDelta || -origEvt.detail))),    // -1 oder 1
-                addLeft = delta * defaults.width,                                               // Left-Differenz
-                left = parseInt(list.css('left')),                                              // bisheriger left-Wert
-                newLeft = left - addLeft;                                                       // neuer left-Wert
+                delta = -Math.max(-1, Math.min(1, (origEvt.wheelDelta || -origEvt.detail)));    // -1 oder 1
 
-            // falls der neue left-Wert im gültigen Bereich liegt
-            if((newLeft <= 0) && (newLeft >= -defaults.listWidth+defaults.width)){
-                list.animate({
-                    left: newLeft + "px",
-                    easing: 'easeInOutQuart'
-                }, defaults.anim, function() {
-                    // DOMMouseScroll wegen Firefox ab Version 3
-                    $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
-                        hMouseWheelHandler(evt);
-                    });
-                });
-            }else{
-                // DOMMouseScroll wegen Firefox ab Version 3
-                $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
-                    hMouseWheelHandler(evt);
+            calcIndex(delta);
+        }
+
+        function registerEvents(){
+            // DOMMouseScroll wegen Firefox ab Version 3
+            $win.on("mousewheel.qpHorPara DOMMouseScroll.qpHorPara", function(evt){
+                hMouseWheelHandler(evt);
+            });
+            if ('ontouchstart' in document.documentElement) {
+                //this.addEventListener('touchstart', onTouchStart, false);
+                $win.on('touchstart.qpHorPara', function(evt){
+                    onTouchStart(evt.originalEvent);
                 });
             }
+        }
+
+/* *** [Animation] *** */
+        function calcIndex(delta) {
+            var index = defaults.index + delta;         // neuer Index
+
+            if(index >= 0 && index < slides.length){
+                defaults.index = index;
+                animSlide(defaults.index);
+            }else{
+                registerEvents();
+            }
+        }
+
+        function animSlide(index, anim) {
+            var nLeft;
+
+            if(index >= 0 && index < slides.length){
+                anim = (anim === undefined) ? defaults.anim : anim;
+                nLeft = -index * defaults.width;
+
+                if(isCss){
+                    list.css({
+                        'left': nLeft + "px",
+                        'transition': 'left ' + (anim/1000) + 's ease-in-out'
+                    });
+
+                    window.setTimeout(function(){
+                        registerEvents();
+                    }, anim+50);
+                }else{
+                    list.animate({
+                        left: nLeft + "px",
+                    }, {
+                        duration: anim,
+                        easing: 'easeInOutQuart',
+                        complete: function() {
+                            registerEvents();
+                        }
+                    });
+                }
+
+            }
+        }
+
+/* *** [HILFSFUNKTIONEN] *** */
+        // Existenz einer CSS-Eigenschaft testen
+        function checkCssProperty(prop) {
+            var elem = document.createElement('div'),
+                prefixes = ['Moz', 'Webkit', 'O', 'ms'],
+                _prop, i, prefixedProp;
+
+            // testen auf Eigenschaft ohne Präfix
+            if (prop in elem.style) {
+                return true;
+            }
+
+            _prop = prop.charAt(0).toUpperCase() + prop.substr(1);
+
+            if (prop in elem.style) {
+                return true;
+            }
+
+            for (i=0; i<prefixes.length; ++i) {
+                var prefixedProp = prefixes[i] + _prop;
+
+                if (prefixedProp in elem.style) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // Public:
